@@ -1,0 +1,52 @@
+Engineering log 20:07 10/01/2026 — Project definition & direction
+
+Project goals (high-level):
+The goal is to design and build a laboratory-grade DDS/AWG function generator, prioritizing signal quality, understanding, and documentation over speed or superficial specs.
+
+Key objectives:
+- PC-controlled user interface (visual, intuitive, USB-based)
+- PC UI must include self-assessment / signal-quality reporting:
+  - Display measured or estimated jitter, THD/THD+N, amplitude error, spurs
+  - Provide a clear “heads-up” to the user about signal cleanness and limitations
+- DDS / AWG waveform generation
+- Standard waveforms + arbitrary waveforms
+- Modulated signals (AM, FM, PM, PWM; later digital modulation)
+- Phased frequency targets:
+  - Start low (≤100 kHz)
+  - Extend to MHz range
+  - High-frequency/RF as a long-term goal
+- Emphasis on clean signal characteristics:
+  - Jitter / phase noise
+  - THD / distortion
+  - Amplitude accuracy & flatness
+  - Spur suppression
+- Robust output stage:
+  - Start at 3.3 V / 5 V
+  - Later high-voltage capability (≈40–50 Vpp at low frequency)
+  - Proper buffering & impedance
+- Protection:
+  - ESD
+  - Short-circuit
+  - Overvoltage / back-drive protection
+- Strong documentation and reproducibility
+
+How the approach was decided:
+Initial motivation came from seeing peer-level hobbyist/engineering projects, which recalibrated standards upward rather than encouraging shortcutting. Instead of buying equipment, the decision was made to build the tool itself as a learning vehicle.
+
+Discussions clarified that:
+- Generating a waveform is relatively easy up to tens of MHz
+- Generating a clean waveform is the real engineering challenge
+- The hardest parts are clocking, analog output stages, filtering, layout, and measurement
+- Therefore, the project should be iterative, not waterfall-style
+
+The agreed strategy:
+- Start with baby steps (LED → DAC output → simple waveform)
+- Let real hardware difficulty dictate pacing
+- Measure early, accept imperfections, and improve incrementally
+- Separate “making it work” from “making it clean”
+- Treat documentation as a first-class part of the project
+
+Immediate next step:
+Bring up the microcontroller environment and perform the simplest possible task (LED control) to establish momentum and validate tooling.
+
+Engineering log end
