@@ -1,0 +1,23 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Builds
+build/
+dist/
+*.o
+*.elf
+*.bin
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# KiCad autosaves/backups
+*.kicad_sch-bak
+*.kicad_pcb-bak
+*~ 
+_autosave-*

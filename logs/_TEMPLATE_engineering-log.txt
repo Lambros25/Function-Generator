@@ -1,0 +1,24 @@
+Engineering log TEMPLATE
+Date: YYYY-MM-DD
+Time: HH:MM
+Title: <short>
+
+Context:
+- What I’m building / testing today
+
+Actions:
+- Step-by-step what I did
+
+Measurements:
+- Instruments used
+- Key readings / screenshots references
+
+Results:
+- What worked
+- What didn’t
+- Suspected causes
+
+Next steps:
+- Smallest next test
+
+Engineering log end
