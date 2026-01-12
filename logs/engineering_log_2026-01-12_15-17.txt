@@ -1,0 +1,65 @@
+ENGINEERING LOG
+================
+
+Date: 12/01/2026
+Time: 15:17
+
+--- Conversation-style record ---
+
+User:
+Engineering log 15:17 12/01/26
+
+Assistant:
+Engineering log started. Date 12/01/2026, time 15:17.
+
+User:
+Discussion about how products are developed, especially transitioning from breadboard and development boards to full PCBs. Questioned whether integrating a dev board footprint into a PCB is a valid intermediate step.
+
+Assistant:
+Explained the proper transition path:
+Breadboard -> Dev-board carrier PCB -> Bare-MCU PCB.
+Highlighted that a dev-board carrier PCB is a standard, low-risk intermediate step used in industry.
+
+User:
+Concern raised about PCB cost and minimum order quantities (e.g., 5 boards per iteration).
+
+Assistant:
+Clarified that spare PCBs are normal and useful:
+- Rework and soldering practice
+- Destructive testing
+- Variant builds
+- Firmware experiments
+- Documentation and reference
+
+User:
+Proposed making PCBs modular with a central system where dev board, DAC, filters, etc. slot in as swappable modules.
+
+Assistant:
+Confirmed this as a sound engineering decision.
+Defined it as a modular backplane + swappable daughter-board architecture.
+Explained benefits:
+- Reduced iteration cost
+- Localized risk
+- Faster learning
+- Easier debugging
+Noted that modularity is intentional and temporary, to be collapsed later.
+
+User:
+Clarified the project is not commercial but should be truly laboratory-grade.
+Asked how to document this properly.
+
+Assistant:
+Provided documentation strategy:
+- Add design-philosophy.md defining non-commercial, lab-grade intent
+- Document modularity explicitly in architecture.md
+- Separate targets vs guarantees in requirements.md
+- Treat limitations and calibration seriously
+- Maintain hardware revision history
+
+User:
+Engineering log end
+
+Assistant:
+Engineering log closed and archived.
+
+--- End of log ---

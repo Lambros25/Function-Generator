@@ -1,4 +1,4 @@
-#Initial Long Term Requirements 10/01/2026
+# Initial Long Term Requirements 10/01/2026
 
 - PC-controlled user interface (visual, intuitive, USB-based)
 UI must include self-assessment / signal-quality reporting:
@@ -28,3 +28,6 @@ UI must include self-assessment / signal-quality reporting:
   - Short-circuit
   - Overvoltage / back-drive protection
 - Strong documentation and reproducibility
+
+### Non-requirements
+    - Commercial certification
