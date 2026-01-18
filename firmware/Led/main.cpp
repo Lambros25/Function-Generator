@@ -1,54 +1,63 @@
 #include <math.h>
 #include "pico/stdlib.h"
-#include "hardware/pwm.h"
-#include "hardware/clocks.h"
+#include "hardware/spi.h"
 #include "pico/time.h"
 
-#define LED_PIN 15
+#define PIN_CS   17
+#define PIN_SCK  18
+#define PIN_MOSI 19
 
-// Pick your sine settings
-#define N_SAMPLES 256
-#define SINE_HZ   2000.0f
-#define PWM_HZ    100000.0f
+#define N_SAMPLES 8
+#define SINE_HZ   10000.0f
 
 static uint16_t sine_lut[N_SAMPLES];
 static volatile uint32_t idx = 0;
-static uint slice;
-static uint16_t wrap_val;
+
+static inline void dac_write_12bit(uint16_t value) {
+    value &= 0x0FFF;
+
+    // MCP4921 control bits (typical):
+    // bit 15: 0 = DAC A
+    // bit 14: 1 = buffered (often fine either way)
+    // bit 13: 1 = gain 1x
+    // bit 12: 1 = active
+    uint16_t cmd = (0 << 15) | (1 << 14) | (1 << 13) | (1 << 12) | value;
+
+    uint8_t buf[2] = { (uint8_t)(cmd >> 8), (uint8_t)(cmd & 0xFF) };
+
+    gpio_put(PIN_CS, 0);
+    spi_write_blocking(spi0, buf, 2);
+    gpio_put(PIN_CS, 1);
+}
 
 static bool timer_cb(struct repeating_timer *t) {
-    pwm_set_gpio_level(LED_PIN, sine_lut[idx]);
-    idx = (idx + 1) & (N_SAMPLES - 1); // works because 256 is power of 2
+    dac_write_12bit(sine_lut[idx]);
+    idx = (idx + 1) & (N_SAMPLES - 1); // N_SAMPLES must be power of 2
     return true;
 }
 
 int main() {
     stdio_init_all();
 
-    // --- PWM setup for ~100 kHz ---
-    gpio_set_function(LED_PIN, GPIO_FUNC_PWM);
-    slice = pwm_gpio_to_slice_num(LED_PIN);
+    // SPI @ 5 MHz (safe, plenty fast for audio-ish updates)
+    spi_init(spi0, 5 * 1000 * 1000);
+    gpio_set_function(PIN_SCK, GPIO_FUNC_SPI);
+    gpio_set_function(PIN_MOSI, GPIO_FUNC_SPI);
 
-    // Compute wrap for desired PWM_HZ with clkdiv=1
-    // f_pwm = f_sys / (clkdiv * (wrap+1))
-    uint32_t f_sys = clock_get_hz(clk_sys); // usually 125 MHz
-    wrap_val = (uint16_t)((f_sys / PWM_HZ) - 1); // for 125MHz & 100kHz -> 1249
+    gpio_init(PIN_CS);
+    gpio_set_dir(PIN_CS, GPIO_OUT);
+    gpio_put(PIN_CS, 1);
 
-    pwm_config cfg = pwm_get_default_config();
-    pwm_config_set_clkdiv(&cfg, 1.0f);
-    pwm_config_set_wrap(&cfg, wrap_val);
-    pwm_init(slice, &cfg, true);
-
-    // --- Build sine lookup table scaled to wrap ---
+    // Build sine LUT: full-scale 0..4095
     for (int i = 0; i < N_SAMPLES; i++) {
         float s = sinf(2.0f * (float)M_PI * (float)i / (float)N_SAMPLES); // -1..+1
-        float u = (s + 1.0f) * 0.5f; // 0..1
-        sine_lut[i] = (uint16_t)(u * (float)wrap_val); // 0..wrap
+        float u = (s + 1.0f) * 0.5f;                                     // 0..1
+        sine_lut[i] = (uint16_t)(u * 4095.0f);
     }
 
-    // --- Fixed update rate: N_SAMPLES * SINE_HZ ---
-    float update_hz = N_SAMPLES * SINE_HZ;         // 25600 Hz
-    int64_t period_us = (int64_t)(1000000.0f / update_hz); // ~39 us
+    // Timer period (us) for update rate = N_SAMPLES * SINE_HZ
+    float update_hz = N_SAMPLES * SINE_HZ;                 // 51200 Hz
+    int64_t period_us = (int64_t)(1000000.0f / update_hz); // ~19 us
 
     struct repeating_timer timer;
     add_repeating_timer_us(-period_us, timer_cb, NULL, &timer);
