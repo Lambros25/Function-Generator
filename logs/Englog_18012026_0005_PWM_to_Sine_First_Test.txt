@@ -1,0 +1,11 @@
+> Today we scoped the pwm signal. I learned that it is not a difference in voltage but it only changes duty cycle.
+>
+> I also learnt that you can make a sin wave by changing the duty cycle like a sinewave and let the capacitor average it out through a low-pass filter (filters the pwm square wave that's at like 100khz)
+>
+> The sinwave is pretty jittery and unclean so next time we will use a dac. For now I used some filters to remove dc and make it look "proper".
+>
+> Still didn't 100% understand how the pwm became sine but I have exams and all so it's sleep time.
+>
+> Liked to see my first generated signal though
+>
+> englog end
