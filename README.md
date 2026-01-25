@@ -1,4 +1,10 @@
-# AWG / DDS Function Generator (Project)
+## -------------------THIS IS IN THE PROTOTYPING STAGE-------------------
+    This project is intentionally kept at the prototype stage to allow rapid
+iteration and experimentation with signal quality, filtering strategies,
+and grounding techniques. Mistakes are to be expected.
+-------------------------------------------------------------------------
+
+# AWG / DDS Function Generator (Prototype)
 
 This repository contains my ongoing engineering work to build a laboratory-oriented DDS/AWG signal generator.
 
@@ -9,6 +15,3 @@ This repository contains my ongoing engineering work to build a laboratory-orien
 - `firmware/` — RP2040/Pico firmware 
 - `scripts/` — helper scripts for committing/pushing logs
 - `Push all.bat\Push Engineering logs.bat` — Batch files to make git pushing quick and easy. 
-
-## -------------------THIS IS A WORK IN PROGRESS-------------------
-    I aim to learn as much as possible during this project both in signals as well as in documentation. Mistakes are to be expected in this stage.
