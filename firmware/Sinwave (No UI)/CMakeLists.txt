@@ -12,11 +12,16 @@ add_executable(learn
     main.cpp
 )
 
+# Added pico_multicore to this list
 target_link_libraries(learn
     pico_stdlib
     hardware_pwm
     hardware_spi
+    pico_multicore 
 )
 
 pico_add_extra_outputs(learn)
 
+# Fixed: Added '1' to enable USB and '0' to disable UART
+pico_enable_stdio_usb(learn 1)
+pico_enable_stdio_uart(learn 0)
