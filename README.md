@@ -1,7 +1,7 @@
 ## -------------------THIS IS IN THE PROTOTYPING STAGE-------------------
     This project is intentionally kept at the prototype stage to allow rapid
-iteration and experimentation with signal quality, filtering strategies,
-and grounding techniques. Mistakes are to be expected.
+    iteration and experimentation with signal quality, filtering strategies,
+    and grounding techniques. Mistakes are to be expected.
 -------------------------------------------------------------------------
 
 # AWG / DDS Function Generator (Prototype)
