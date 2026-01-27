@@ -9,7 +9,7 @@
 This repository contains my ongoing engineering work to build a laboratory-oriented DDS/AWG signal generator.
 
 ## Structure
-- `logs/` — conversation-style Engineering Logs, a way to express train of thought and ideas. (timestamped `.txt`)
+- `logs/` — Detailed overview of every work session. (timestamped `.txt`)
 - `docs/` — structured technical docs (Markdown)
 - `hardware/` — schematics, PCB, BOM, simulations
 - `firmware/` — RP2040/Pico firmware 
