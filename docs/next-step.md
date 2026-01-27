@@ -1,8 +1,4 @@
-- `10/01/2026`
-    Begin with first task, light an LED and learn the basics of using pi pico.
+- Exchanging R-2R resistors from 10k, 20k to 1k, 2k.
 
-- `17/01/2026`
-    Start implementation with DAC's
-
-- `18/01/2026`
-    Check sustainable sample rate, ways to increase. Maybe start working on broader frequency range.
+- Learning the programming basics of signal generation using R-2R ladder.
+    

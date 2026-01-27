@@ -1,3 +1,3 @@
-- `MCp4921 Started Use 18/01/2026` 
-    Easy to source, easy to use. Okay for a start.
-
+- `10k, 20k R-2R Ladder`
+    Allows for much much higher frequencies. Possible permanent solution
+    

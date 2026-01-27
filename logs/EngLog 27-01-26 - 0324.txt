@@ -1,0 +1,15 @@
+First official log.
+
+Today I cleared everything. Started from scratch.
+
+Installed pico workspace through the official site as well as drivers using zadig. Changes and firmware updates became much easier.
+
+Carried on work and made a very inefficient 10k,20k R-2R ladder.
+
+For time and prototyping reasons used Gemini to generate test code for the ladder. As expected, visible quality loss starts happening at 60-70kHz. Can still produce okay signals up to 200kHz. Seems the filter cuts off about there as quality severely decreases for higher frequencies, so does the magnitude.
+
+Pushed to it's limits the pico can provide ~10MHz signal.
+
+Next steps:
+	- Changing the ladder to use 1k and 2k resistors in order to help raise the cutoff frequency.
+	- Learn to program the Pico with the short term goal of writing a frequency in the serial monitor and have the circuit provide the signal in that frequency with error <0.001%

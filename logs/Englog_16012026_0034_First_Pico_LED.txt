@@ -1,9 +1,0 @@
-> Engineering log 16/1/16 00:34
-
-Blinked and pulsated my first led. Though setup was hell and I still have no Idea how pico works. I didn’t learn anything just spent 2 hours setting up
-
-
-I had an Idea to add for the “final product”.
-
-Ai, in terms of being able to say: “Hey chat give me
-The output of the average russian radio station” for example and it makes the average frequency and signal russian stations have as well as noise
