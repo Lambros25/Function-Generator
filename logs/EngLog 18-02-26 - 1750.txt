@@ -1,0 +1,10 @@
+Used Claude to get code for a proper serial I/O. Needed calibration but finally in working order. Seems that I can manage even 1MHz with signal sacrifice. I'll check how much signal can be restored using lowpass filtering. As well as the method of which I'll fitler. Starting with simple RC for now.
+
+Also changed the R-2R ladder to use 2.2kOhm and 1.1kOhm (with 2 2.2kOhm in parallel).
+
+Next steps:
+- Order buffer. Preferably LM318 but get more for options. As well as solid core cables.
+
+- Low frequency trials with TL082. Trying for LPF, preferably staring with a simple RC and testing if one two pole is enough or if something more complex is needed.
+
+- Learn the code.
