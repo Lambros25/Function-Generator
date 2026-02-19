@@ -5,6 +5,7 @@
 #include "hardware/pio.h"
 #include "hardware/clocks.h"
 #include <stdlib.h>
+#include <string.h>
 
 // ===== CONFIGURATION =====
 volatile float calibration_factor = 1.0f;  // User adjustable
@@ -12,10 +13,19 @@ volatile float calibration_factor = 1.0f;  // User adjustable
 #define SAMPLE_RATE_HZ 4034843
 #define DAC_PINS_BASE 0          // R-2R on pins 0-7
 
+// ===== WAVEFORM TYPES =====
+typedef enum {
+    WAVEFORM_SINE,
+    WAVEFORM_SQUARE
+} waveform_type_t;
+
 // ===== GLOBALS =====
 uint8_t sine_table[SINE_TABLE_SIZE];
+uint8_t square_table[SINE_TABLE_SIZE];
 volatile uint32_t frequency_hz = 1000;  // Default 1 kHz
 volatile bool frequency_changed = false;
+volatile waveform_type_t current_waveform = WAVEFORM_SINE;
+volatile bool waveform_changed = false;
 
 // ===== PIO PROGRAM =====
 // Single instruction: output 8 bits to pins
@@ -29,12 +39,19 @@ const struct pio_program dac_program = {
     .origin = -1,
 };
 
-// ===== SINE TABLE GENERATION =====
+// ===== WAVEFORM TABLE GENERATION =====
 void generate_sine_table() {
     for (int i = 0; i < SINE_TABLE_SIZE; i++) {
         // Generate sine wave: 0-255 range, centered at 127.5
         float angle = (2.0f * M_PI * i) / SINE_TABLE_SIZE;
         sine_table[i] = (uint8_t)(127.5f + 127.5f * sinf(angle));
+    }
+}
+
+void generate_square_table() {
+    for (int i = 0; i < SINE_TABLE_SIZE; i++) {
+        // First half: high (255), second half: low (0)
+        square_table[i] = (i < SINE_TABLE_SIZE / 2) ? 255 : 0;
     }
 }
 
@@ -71,22 +88,31 @@ void core1_entry() {
     uint32_t phase_accumulator = 0;
     uint32_t local_frequency = frequency_hz;
     float local_calibration = calibration_factor;
+    waveform_type_t local_waveform = current_waveform;
+    uint8_t *active_table = sine_table;  // Pointer to current waveform table
     uint32_t phase_increment = ((uint64_t)local_frequency * 4294967296ULL) / (uint32_t)(SAMPLE_RATE_HZ * local_calibration);
     
     while (true) {
         // Check for frequency or calibration updates from Core 0
         if (frequency_changed) {
             local_frequency = frequency_hz;
-            local_calibration = calibration_factor;  // Update calibration too
+            local_calibration = calibration_factor;
             phase_increment = ((uint64_t)local_frequency * 4294967296ULL) / (uint32_t)(SAMPLE_RATE_HZ * local_calibration);
             frequency_changed = false;
         }
         
+        // Check for waveform changes
+        if (waveform_changed) {
+            local_waveform = current_waveform;
+            active_table = (local_waveform == WAVEFORM_SINE) ? sine_table : square_table;
+            waveform_changed = false;
+        }
+        
         // Generate samples
-        for (int i = 0; i < 32; i++) {  // Batch to reduce loop overhead
+        for (int i = 0; i < 32; i++) {
             // Get table index from upper bits of phase accumulator
             uint8_t table_index = phase_accumulator >> 24;
-            uint8_t sample = sine_table[table_index];
+            uint8_t sample = active_table[table_index];
             
             // Feed to PIO (blocking if FIFO full)
             pio_sm_put_blocking(pio, sm, sample);
@@ -108,15 +134,19 @@ int main() {
     printf("Commands:\n");
     printf("  f<number> - Set frequency in Hz (e.g., f1000 for 1kHz)\n");
     printf("  c<number> - Set calibration factor (e.g., c1.06 for 6%% correction)\n");
-    printf("  i - Show current info\n\n");
+    printf("  sine      - Switch to sine wave\n");
+    printf("  square    - Switch to square wave\n");
+    printf("  i         - Show current info\n\n");
     
-    // Generate sine lookup table
+    // Generate waveform lookup tables
     generate_sine_table();
+    generate_square_table();
     
     // Launch Core 1 for waveform generation
     multicore_launch_core1(core1_entry);
     
     printf("Generator running at %d Hz\n", frequency_hz);
+    printf("Waveform: SINE\n");
     printf("Calibration factor: %.4f\n", calibration_factor);
     
     // Command processing loop
@@ -143,21 +173,30 @@ int main() {
                             printf("Invalid frequency (range: 1-1000000 Hz)\n");
                         }
                     } else if (input_buffer[0] == 'c') {
-                            // Calibration command
-                            float new_cal = atof(&input_buffer[1]);
-                            if (new_cal > 0.5 && new_cal < 1.5) {
-                                calibration_factor = new_cal;
-                                frequency_changed = true;  // ← ADD THIS LINE HERE
-                                printf("Calibration factor set to %.4f\n", new_cal);
-                            } else {
-                                printf("Invalid calibration (range: 0.5-1.5)\n");
-                            
+                        // Calibration command
+                        float new_cal = atof(&input_buffer[1]);
+                        if (new_cal > 0.5 && new_cal < 1.5) {
+                            calibration_factor = new_cal;
+                            frequency_changed = true;
+                            printf("Calibration factor set to %.4f\n", new_cal);
+                        } else {
+                            printf("Invalid calibration (range: 0.5-1.5)\n");
                         }
-                    
+                    } else if (strcmp(input_buffer, "sine") == 0) {
+                        // Sine wave command
+                        current_waveform = WAVEFORM_SINE;
+                        waveform_changed = true;
+                        printf("Waveform: SINE\n");
+                    } else if (strcmp(input_buffer, "square") == 0) {
+                        // Square wave command
+                        current_waveform = WAVEFORM_SQUARE;
+                        waveform_changed = true;
+                        printf("Waveform: SQUARE\n");
                     } else if (input_buffer[0] == 'i') {
                         // Info command
                         printf("Current frequency: %d Hz\n", frequency_hz);
                         printf("Sample rate: %d Hz\n", SAMPLE_RATE_HZ);
+                        printf("Waveform: %s\n", (current_waveform == WAVEFORM_SINE) ? "SINE" : "SQUARE");
                         printf("Calibration factor: %.4f\n", calibration_factor);
                         printf("Table size: %d samples\n", SINE_TABLE_SIZE);
                     }

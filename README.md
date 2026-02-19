@@ -14,4 +14,5 @@ This repository contains my ongoing engineering work to build a laboratory-orien
 - `hardware/` — schematics, PCB, BOM, simulations
 - `firmware/` — RP2040/Pico firmware 
 - `scripts/` — helper scripts for committing/pushing logs
-- `Push all.bat\Push Engineering logs.bat` — Batch files to make git pushing quick and easy. 
+- `Push all.bat\Push Engineering logs.bat` — Batch files to make git pushing quick and easy.
+- `images/` — Images of the project. Used for progress tracking. 

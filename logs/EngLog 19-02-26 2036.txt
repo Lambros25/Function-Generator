@@ -1,0 +1,24 @@
+Hardware:
+Used the TL082 op-amp for testing. Specifically wired like so:
+
+V+: 9V
+V-: -9V
+Inverting input -> Output (feedback)
+Non-Inverting input -> Signal out of R-2R.
+
+I then added 2 Low Pass Filters using 470Ω resistors and 220pF capacitors and buffered it again using the second amp in the TL082.
+
+Now I have "usable" signal.
+
+Frequency is acceptable up to 100-200Khz (acceptable meaning no obvious differences from my Generator's 50Khz).
+Can output up to 1MHz, where the signal has 50% gain and ~1V dc offset; A lot of jitter and ghosting.
+
+Firmware:
+Used claude to add square wave. Did some tests. A better op-amp is needed in order to conclude true quality.
+
+Docs:
+Updated Docs and added images folder.
+
+Next steps:
+- Order buffer. Preferably LM318 but get more for options. As well as solid core cables.
+- Learn the code.
