@@ -1,0 +1,12 @@
+Did some optimising and "secondary work". Specifically:
+- Added High Pass Filter right after the R-2R ladder in order to remove DC bias.
+- Added 10kOhm potentiometer right after the 2 LPFs to as a temporary amplitude control.
+- Added schematics in \hardware.
+- Added 100nf capacitors and 10uf capacitors at the power inputs of the opamp. Coupling capacitors to deliver current - at high frequencies and keep the overall source voltage stable.
+
+- Ordered single core wires, a perfboard to solder the R-2R ladder on as well as 4 lm318.
+- Uploaded signal pictures.
+
+Next steps:
+-Install lm318, check quality. Get a digital potentiometer for full 18V swing (using 2 9V batteries).
+-Code...
