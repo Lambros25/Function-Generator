@@ -1,0 +1,33 @@
+Working on the project all day since lm318 arrived. Many changes hardware wise. Many difficulties. 
+
+Update on the schematics. Begun with 4 RC filters and one Op-Amp for buffer and another for gain. Found out RC filters cause phase lag and loss of gain when used in series. Changed to active filtering specifically Sallen-Key. Used parallel resistors/capacitors to achieve the ratios I needed (!).
+
+Still results were less than ideal. Ended up using all 4 op-amps.
+1) Buffer
+2) LPF
+3) Gain
+4) LPF
+
+Still noise issues persist. Thus, when passing through the gain stage things get chaotic. I have noticed noise coming out of the buffer and gets exponentially worse when a load is added. Don't think it's the op-amps.
+
+Possible causes ranked by what I think is most probable:
+1) Parasitic capacitance and bad contact on the board
+	- I have noticed that moving around resistors and capacitors (as in pressing them harder on the board) sometimes helps a lot with the issue. Still, it happens at low frequencies too.
+
+2) The opamp/filter layout. The way the resistors are wired as well as the buffers is unorthodox. Especially in the filters using parallel components makes me think that something else is going on.
+
+3) R-2R ladder. Bad contacts, bad connections only making themselves visible now because of the better opamp.
+
+4) Wiring, layout, grounding and breadboard. Although this probably sounds like it should be higher, the brief moments of clean signal with each stage tells me its something less... systemic.
+
+Next steps:
+- Solder the R-2R ladder on the perfboard. (as well as the battery + connection)
+	Solder in pins and the HPF at the end. So that the perboard itself can fit onto the breadboard.
+- Try non-parallel (even if less precise) components in the Sallen-key filtes. 
+- Learn more about active filters and alternatives.
+- Disassemble and reassemble the board, making sure of correct options. (last resort).
+
+Goodluck, you'll need it this time.
+
+
+P.S: Uploaded pictures of the signal as well as current breadboard. 
