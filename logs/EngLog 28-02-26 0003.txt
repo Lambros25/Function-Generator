@@ -33,7 +33,8 @@ Just changed the order of the R-2R ladder. Yes… through ai.
 Next steps:
 - Square wave (probably using one pico pin and a buffer/ amplifier)
 - Maybe try to get some feedback on this project either through the internet (i.e. reddit) or university.
-
+- Add the 10uF capacitors for the final stage (I forgot)
+- Take and upload more detailed photos
 
 P.S: Deleted old pictures will keep only "up to date" ones for now (with the exception of 1MHz quality check)
 
