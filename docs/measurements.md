@@ -1,3 +1,3 @@
 # Current measurements
-## Clean signal up to 100kHz
-## Acceptable signal up to 500kHz
+## Clean signal up to 1MHz
+## Slight jitter/vibration.

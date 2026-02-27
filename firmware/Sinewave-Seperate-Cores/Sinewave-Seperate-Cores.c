@@ -39,19 +39,30 @@ const struct pio_program dac_program = {
     .origin = -1,
 };
 
+// ===== HELPER FUNCTION =====
+// Reverse bit order in a byte
+uint8_t reverse_bits(uint8_t b) {
+    b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;  // Swap nibbles
+    b = (b & 0xCC) >> 2 | (b & 0x33) << 2;  // Swap pairs
+    b = (b & 0xAA) >> 1 | (b & 0x55) << 1;  // Swap bits
+    return b;
+}
+
 // ===== WAVEFORM TABLE GENERATION =====
 void generate_sine_table() {
     for (int i = 0; i < SINE_TABLE_SIZE; i++) {
         // Generate sine wave: 0-255 range, centered at 127.5
         float angle = (2.0f * M_PI * i) / SINE_TABLE_SIZE;
-        sine_table[i] = (uint8_t)(127.5f + 127.5f * sinf(angle));
+        uint8_t value = (uint8_t)(127.5f + 127.5f * sinf(angle));
+        sine_table[i] = reverse_bits(value);  // Pre-reverse for flipped wiring
     }
 }
 
 void generate_square_table() {
     for (int i = 0; i < SINE_TABLE_SIZE; i++) {
         // First half: high (255), second half: low (0)
-        square_table[i] = (i < SINE_TABLE_SIZE / 2) ? 255 : 0;
+        uint8_t value = (i < SINE_TABLE_SIZE / 2) ? 255 : 0;
+        square_table[i] = reverse_bits(value);  // Pre-reverse for flipped wiring
     }
 }
 
@@ -112,7 +123,7 @@ void core1_entry() {
         for (int i = 0; i < 32; i++) {
             // Get table index from upper bits of phase accumulator
             uint8_t table_index = phase_accumulator >> 24;
-            uint8_t sample = active_table[table_index];
+            uint8_t sample = active_table[table_index];  // Already bit-reversed in the table
             
             // Feed to PIO (blocking if FIFO full)
             pio_sm_put_blocking(pio, sm, sample);

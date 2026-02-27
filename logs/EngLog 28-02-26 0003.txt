@@ -1,0 +1,39 @@
+Working on project all day long. Revamped the design. First Major Success.
+
+Trial and error for many hours today. Noise and oscillations in the opamps.
+
+Hardware:
+Ended up using the recommended (in datasheet) digital-analog converter using lm318 and R-2R ladder. Slight mismatch between resistor values (needed 5k, 10k, I use 2.2k and 1.1k) yet results were moderate. Did solve the issue of buffering though, as buffering the step signals was an oscillation nightmare.
+
+Ditched active filtering completely, after hours of moderate success. No need to keep it active, especially in higher frequencies where the filter sometimes added noise. I decided to go with 5 cascading filters:
+
+	- 4 were a series of LP RC filters using 470Ohm resistors and 221 capacitors
+	- The last one a HP RC filter with 100uF capacitor and 1MOhm resistor. Chose the resistor value to have the 	least amount of "impact" on the other filters and started with a 1uf capacitor but caused problems on low 	frequencies. Ended up using 100uF as everything worked great with it.
+
+Learned that high speed op-amps like lm318 are very sensitive to parasitic capacitance and need their layout exactly as shown in their datasheets (I know obvious). Many hours spent trying to stop them from oscillating.
+
+As the signal was pretty weak after all that filtering I added a high gain stage. Simple inverted voltage amplifier with a 1kOhm input resistor and 0-10kOhm feedback potentiometer in parallel with a 5pF capacitor. This allowed me to amplify the signal rail to rail (+-9V).
+
+Important to note these Op-Amps require the usual coupling capacitors (100nf) but also bigger capacitors (10uf), in order to not oscillate and give out clean signal.
+
+After the amplification I added another LPF with the same characteristics as the others, as amplifying the signal did uncover some noise, and finally a simple voltage follower as in the datasheet in order to buffer the signal.
+
+In order to be more "proper" I added a 47Ω output resistor and soldered it onto a BNC connector.
+
+Soldered the R-2R ladder on the perfboard and reversed the order as it was more convenient on the board (also fixed the battery connector). Soldered the low pass dc blocking filter at the start too but de-soldered it as I changed to the lm318 design.
+
+Ended up with a pretty good signal, no ghosting and a little "vibrating" at 1MHz. At that frequency I'm not sure if the defects are because of the signal or my oscilloscope.
+
+Uploaded many pictures, changed the schematics.
+
+
+Firmware:
+Just changed the order of the R-2R ladder. Yes… through ai.
+
+Next steps:
+- Square wave (probably using one pico pin and a buffer/ amplifier)
+- Maybe try to get some feedback on this project either through the internet (i.e. reddit) or university.
+
+
+P.S: Deleted old pictures will keep only "up to date" ones for now (with the exception of 1MHz quality check)
+

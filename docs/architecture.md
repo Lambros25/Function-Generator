@@ -1,10 +1,5 @@
 # Architecture 
 
-## Goals(v0.1)
-- PC control (basic UI)
-- DDS waveforms
-- Frequency range 0Hz-100kHz 
-
 ## Block Diagram (current)
 [PC UI] -> [USB Protocol] -> [Raspberry Pi Pico 2W] -> [DAC] -> [Reconstruction Filter] -> [Output Buffer] -> [Output]
 
@@ -14,9 +9,6 @@
 - Protection (ESD/short/overvoltage)
 - Phased frequency goals (start low, extend upward)
 - Frequency range: 0Hz-1MHz
-
-## Block Diagram (future)
-[PC UI] -> [USB Protocol] -> [MCU (RP2040)] -> [DDS/ARB Engine] -> [DAC] -> [Reconstruction Filter] -> [Output Buffer/Attenuator] -> [Output + Protection]
 
 ## Notes
 - Define “clean” using measurable specs (THD, jitter, amplitude flatness, spurs).

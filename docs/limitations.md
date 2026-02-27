@@ -7,10 +7,11 @@
     Probes add visible parasitic capacitance at higher frequencies.
 
 ### Breadboard
-    High parasitic capacitances, visible very much on frequencies, currently over 200kHz
+    High parasitic capacitances.
 
 ### R-2R Resistors
-    Although they have a tolerance of 1%, less tolerant resistors would improve the overall signal. Low on priority list.
+    - Although they have a tolerance of 1%, less tolerant resistors would improve the overall signal
+    - 5k and 10k would be ideal.
 
 # Intentional Limitations
     Certain architectural choices (e.g. modular PCBs, external connectors) introduce non-idealities such as added parasitics and increased noise.
