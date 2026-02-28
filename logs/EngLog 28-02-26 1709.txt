@@ -11,9 +11,9 @@ For square wave buffering, maybe some IC and transistors for amplification/curre
 
 AWG needs more research.
 
-Will update documents as well.
-
 Updated documentation to match current goals and capabilities, as well as miscellaneous changes.
+
+Also updated code to output squarewaves on GPIO8 pin 11.
 
 Next steps:
 - Figure out Square wave amplification (avoid IC if possible as they tend to be smd only and expensive)
