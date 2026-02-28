@@ -35,6 +35,7 @@ Next steps:
 - Maybe try to get some feedback on this project either through the internet (i.e. reddit) or university.
 - Add the 10uF capacitors for the final stage (I forgot)
 - Take and upload more detailed photos
+- put the potentiometer in Rin.
 
 P.S: Deleted old pictures will keep only "up to date" ones for now (with the exception of 1MHz quality check)
 
