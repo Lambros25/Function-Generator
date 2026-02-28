@@ -1,4 +1,4 @@
-# Current reconstruction method
+# Current sinewave reconstruction method
 
 ## First Stage: Buffering
     - lm318 for digital to analog as well as buffering.

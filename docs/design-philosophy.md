@@ -1,5 +1,5 @@
 # Project Scope
-    Aim to design, develop and build a laboratory-grade arbitraty waveform generator as an education and negineering exercise.
+    Aim to design, develop and build a laboratory-grade arbitraty waveform generator as an education and engineering exercise.
 
 ## Goals
     - `Measurment-grade performance`

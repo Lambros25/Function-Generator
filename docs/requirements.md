@@ -19,7 +19,7 @@ UI must include self-assessment / signal-quality reporting:
         - Spur suppression
 
 - Robust output stage:
-  - Start at 3.3 V / 5 V
+  - Start at 18Vpp
   - Later high-voltage capability (≈40–50 Vpp at low frequency)
   - Proper buffering & impedance
 

@@ -1,0 +1,19 @@
+Did some research, will plot down future plan. But small update:
+
+Circuit works fine, having major trouble with breadboard making bad contact. Decided to keep "high-z" part of the sinewave generation, add a square and a arbitrary wave generation and get the first Rev1.0 PCB.
+Still all those "bad contacts" especially with the potentiometer cost me one lm318 as it's feedback loop opened and fried it.
+
+Acts as proof of concept gets rid of parasitic capacitances will work with analog potentiometers. No DC offset, no current drive.
+
+For current drive, transistors.
+
+For square wave buffering, maybe some IC and transistors for amplification/current.
+
+AWG needs more research.
+
+Will update documents as well.
+
+Updated documentation to match current goals and capabilities, as well as miscellaneous changes.
+
+Next steps:
+- Figure out Square wave amplification (avoid IC if possible as they tend to be smd only and expensive)

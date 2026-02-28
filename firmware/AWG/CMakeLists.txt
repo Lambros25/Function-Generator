@@ -28,37 +28,46 @@ set(PICO_BOARD pico_w CACHE STRING "Board type")
 # Pull in Raspberry Pi Pico SDK (must be before project)
 include(pico_sdk_import.cmake)
 
-project(Sinewave-Seperate-Cores C CXX ASM)
+project(AWG C CXX ASM)
 
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(Sinewave-Seperate-Cores Sinewave-Seperate-Cores.c )
+add_executable(AWG AWG.c )
 
-pico_set_program_name(Sinewave-Seperate-Cores "Sinewave-Seperate-Cores")
-pico_set_program_version(Sinewave-Seperate-Cores "0.1")
+pico_set_program_name(AWG "AWG")
+pico_set_program_version(AWG "0.1")
+
+# Generate PIO header
+pico_generate_pio_header(AWG ${CMAKE_CURRENT_LIST_DIR}/blink.pio)
 
 # Modify the below lines to enable/disable output over UART/USB
-pico_enable_stdio_uart(Sinewave-Seperate-Cores 0)
-pico_enable_stdio_usb(Sinewave-Seperate-Cores 1)
+pico_enable_stdio_uart(AWG 0)
+pico_enable_stdio_usb(AWG 1)
 
 # Add the standard library to the build
-target_link_libraries(Sinewave-Seperate-Cores
+target_link_libraries(AWG
         pico_stdlib)
 
 # Add the standard include files to the build
-target_include_directories(Sinewave-Seperate-Cores PRIVATE
+target_include_directories(AWG PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}
 )
 
 # Add any user requested libraries
-target_link_libraries(Sinewave-Seperate-Cores 
+target_link_libraries(AWG 
         hardware_spi
-        pico_multicore
+        hardware_i2c
+        hardware_dma
         hardware_pio
+        hardware_interp
+        hardware_timer
+        hardware_watchdog
+        hardware_clocks
+        pico_multicore
         )
 
-pico_add_extra_outputs(Sinewave-Seperate-Cores)
+pico_add_extra_outputs(AWG)
 

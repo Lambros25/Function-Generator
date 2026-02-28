@@ -4,6 +4,8 @@ This document lists features, improvements, and extensions that are
 intentionally postponed to preserve focus and momentum.
 
 ---
+## Modulated signals
+- Ability to produce modulated signals up to MHz
 
 ## High-frequency extensions
 - Extend clean sine generation beyond the initial MHz range
@@ -21,7 +23,6 @@ intentionally postponed to preserve focus and momentum.
 
 ## Signal quality improvements
 - Lower phase noise / jitter through improved clock sources
-- Spur reduction techniques for DDS images
 - Better reconstruction filtering strategies
 
 ---
