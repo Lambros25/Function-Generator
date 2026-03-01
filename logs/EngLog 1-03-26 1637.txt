@@ -1,0 +1,8 @@
+Changing to discrete components, experimentation with transistors.
+
+I feel like I can get much more experience, and better results using discrete transistors. Either way they are easy to get and cheap unlike high performance complex ICs.
+
+Parts ordered.
+
+Next steps:
+- As soon as parts arrive experiment and learn buffering voltage and current amplification with discrete transistors. Keep them biased to remove the ~0.7V signal loss. Start with square wave. If better replace all IC's.
