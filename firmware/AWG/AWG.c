@@ -12,7 +12,7 @@ volatile float calibration_factor = 1.0f;
 #define SINE_TABLE_SIZE 256
 #define SAMPLE_RATE_HZ 4034843
 #define DAC_PINS_BASE 0
-#define SQUARE_OUT_PIN 8
+#define SQUARE_OUT_PIN 9
 
 // ===== WAVEFORM TYPES =====
 typedef enum {

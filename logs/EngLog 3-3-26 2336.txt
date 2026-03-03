@@ -1,0 +1,15 @@
+Today transistors and parts arrived. I have not yet eaten. I learned a lot yet still cannot get current through. I have found many voltage amplifiers but just like the one in use, they crumble whenever a load is inserted. Research required.
+
+I made the current amplifier using the transistor basic equations.
+
+Small edits on the code aswell as I burt GPIO pin 8 by inserting a capacitor I thought was discharged.
+
+Current amplifier works by lowering the signal to -9V, acting like a "ground". Then amplifying it to rail voltage. 
+Proud of it as I thought it up, works on spice as well but not in reality.
+
+P.S. Transistors blow easily.
+
+Next Steps:
+- Figure out current amplification, preferably for something that works for sinewave aswell.
+
+GoodLuck
