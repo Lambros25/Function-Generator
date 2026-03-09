@@ -9,13 +9,12 @@
 
 ## Goals (v1.0)
 - PC UI control (USB)
-- Sinewave, Squarewave and AWG all High-Z
+- Sinewave, Squarewave 50Ω.
 - Frequency range: 0Hz-1MHz
 
 ## Next in line (v2.0+)
 - Protection (ESD/short/overvoltage)
-- 50Ω Output
-- Frequency up to 2MHz for sinewave, more for square through overclocking the pico
+
 
 ## Notes
 - Define “clean” using measurable specs (THD, jitter, amplitude flatness, spurs).
