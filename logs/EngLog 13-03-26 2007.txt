@@ -1,0 +1,6 @@
+Completed first "prototype" of the square wave buffer circuit. Doesn't work for high frequency (>50000Hz)
+
+Trial and struggle in reality with raising the voltage
+
+Next steps:
+Using pnp and npn in a push pull
