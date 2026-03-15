@@ -1,6 +1,6 @@
 Completed first "prototype" of the square wave buffer circuit. Doesn't work for high frequency (>50000Hz)
 
-Trial and struggle in reality with raising the voltage
+Trial and struggle in reality with raising the voltage. Edges get rounded, but we do have ~8Vpp square that can drive at least another transistor.
 
 Next steps:
 Using pnp and npn in a push pull
