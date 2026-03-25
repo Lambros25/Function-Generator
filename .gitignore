@@ -21,3 +21,8 @@ __pycache__/
 *.kicad_pcb-bak
 *~ 
 _autosave-*
+
+#LTSpice logs
+*.raw
+*.op.raw
+*.log
