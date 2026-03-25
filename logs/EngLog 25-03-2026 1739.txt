@@ -1,0 +1,20 @@
+Progress. Completed first 1MHz prototype. Signal is far from clean and there appears to be a "duty cycle variety". 
+It's very clear that the signal looks very unstable and noisy. Yet, it is a 1MHz square signal on a breadboard.
+
+Used a totem pole circuit (available in hardware schematics in LTSpice). 
+
+Had many issues regarding higher frequencies, ended up adding a pnp (and thus making the totem pole circuit) to "pull" down the signal in time. 
+Right after there were issues pulling "up" the signal, but those were remedied (to a degree) by a 30pF capacitor before the connected base of the first pair of transistors. I added it in hopes it would give more "power" to the signal allowing it to hit Vmax faster.
+
+Current ability: 1kOhm input impendance. More than that, the transistors and resistors get warm and the circuit experiences a big voltage drop. Although the factors are known and are 2:
+- High Collector resistance (relative to the 50 Ohm needed)
+- Battery can't drive that much current.
+
+Big milestone today. Even in 1Mhz is noisy, up to 500kHz the signal looks pretty good.
+
+
+
+Next Steps:
+- Refine the signal, most likely won't need to change the circuit drastically.
+- Fix the code for square signal as it gives ~2.5x the frequency (was used to compensate for the sinewave so don't remove that part).
+- Figure out if you need smaller resistors to drive 50Ohm. Or if a simple Emitter follower ( signal -> base, Source -> collector and output on Emmiter) is enough.
