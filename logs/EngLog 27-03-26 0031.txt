@@ -1,0 +1,4 @@
+Fixed duty cycle and frequency mismatch issues. Noticed that removing the +9V of the first pnp pair fixes completely the 1MHz square.
+
+Next Steps:
+Finish square wave low power output.
