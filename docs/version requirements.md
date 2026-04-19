@@ -1,4 +1,16 @@
-# Initial Long Term Requirements 10/01/2026
+# V1.0
+- Sine and Square output 0-1MHz 9V peak
+- Digitally adjustable amplitude
+- PC controlled via Pico W thorugh simple UI
+- PCB for durability and cleanliness
+- Strong documentation and reproducibility
+- BNC Output
+- USB & battery powered
+- ESD Protection
+- High-Z only
+
+
+# V2.0+
 
 - PC-controlled user interface (visual, intuitive, USB-based)
 UI must include self-assessment / signal-quality reporting:
@@ -8,10 +20,6 @@ UI must include self-assessment / signal-quality reporting:
 - DDS / AWG waveform generation
     - Standard waveforms + arbitrary waveforms
     - Modulated signals (AM, FM, PM, PWM; later digital modulation)
-    - Phased frequency targets:
-        - Start low (≤100 kHz)
-        - Extend to MHz range
-        - High-frequency/RF as a long-term goal
     - Emphasis on clean signal characteristics:
         - Jitter / phase noise
         - THD / distortion
@@ -19,15 +27,13 @@ UI must include self-assessment / signal-quality reporting:
         - Spur suppression
 
 - Robust output stage:
-  - Start at 18Vpp
-  - Later high-voltage capability (≈40–50 Vpp at low frequency)
+  - High-voltage capability (≈40–50 Vpp at low frequency)
   - Proper buffering & impedance
 
 - Protection:
-  - ESD
   - Short-circuit
   - Overvoltage / back-drive protection
-- Strong documentation and reproducibility
 
+- Discrete components
 ### Non-requirements
     - Commercial certification

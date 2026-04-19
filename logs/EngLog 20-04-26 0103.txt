@@ -1,0 +1,36 @@
+Holidays are over. Posted about my design on reddit and did small trials (both simulations and in real) but to no avail. I have realised I grew tired and I'm in way too deep to understand where I might be going wrong.
+
+This project will not be abandoned, but a compromise will be made. V1 will use IC's for square wave aswell. I'll be ordering those tonight or tomorrow when I plan exactly what I need.
+
+The whole reason for compromise is the need to deliver, else I fear I may not finish.
+
+V1 was updated and requires these:
+- Sine and Square output 0-1MHz 9V peak
+- Digitally adjustable amplitude
+- PC controlled via Pico W thorugh simple UI
+- PCB for durability and cleanliness
+- Strong documentation and reproducibility
+- BNC Output
+- USB & battery powered
+- ESD Protection
+- High-Z only
+
+Decided that it will work as follows:
+Sinewave stays the same but digipot is implemented.
+
+Square is buffered with a comparator (TC4427) and amplitude control comes from limiting the rails (LT3080 AND 90 as well as MCP4291 which  I have to control the limiters).  
+
+Parts to order:
+- TC4427 gate driver for square output
+- LT3080 Positive adjustable LDO
+- LT3090 Negative adjustable LDO
+- MAX4544 SPDT analog switch (to choose signal)
+- MCP4921 LDO adjust control
+- SMBJ12CA Bidirectional TVS at BNC
+- BNC connector, PCB-mount
+- SPST slide switch, PCB-mount
+- AD5260 digipot
+- SPST slide switchBattery main
+
+Next steps:
+- Check and order parts

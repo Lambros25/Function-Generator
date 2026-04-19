@@ -1,7 +1,7 @@
 # Future Work
 
 This document lists features, improvements, and extensions that are
-intentionally postponed to preserve focus and momentum.
+intentionally postponed to preserve focus and momentum. May or may not be developed.
 
 ## High Priority
 
@@ -21,7 +21,8 @@ intentionally postponed to preserve focus and momentum.
 
 ## Lower Priority
 
----
+### Discrete parts
+Building the generator using only discrete components.
 
 ### Modulated signals
 - Ability to produce modulated signals up to MHz
