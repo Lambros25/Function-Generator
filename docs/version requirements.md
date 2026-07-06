@@ -1,13 +1,11 @@
 # V1.0
 - Sine and Square output 0-1MHz 9V peak
-- Digitally adjustable amplitude
+- Sine adjustable amplitude
 - PC controlled via Pico W thorugh simple UI
 - PCB for durability and cleanliness
 - Strong documentation and reproducibility
 - BNC Output
 - USB & battery powered
-- ESD Protection
-- High-Z only
 
 
 # V2.0+
@@ -35,5 +33,10 @@ UI must include self-assessment / signal-quality reporting:
   - Overvoltage / back-drive protection
 
 - Discrete components
+
+- Protection (ESD/short/overvoltage)
+
+- Variable squarewave gain
+
 ### Non-requirements
     - Commercial certification

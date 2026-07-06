@@ -1,0 +1,8 @@
+PCB has been completed and ordered. Most components will be soldered by the factory.
+
+Filtering section will be THT as I need easy solder access and availability/price as the results may not be as expected (breadboard capacitances were much different than PCB).
+Updated docs.
+
+Chose a 2 layer PCB with as much of a solid ground as possible for better signal integrity. PCB will have female pins in order to accept pico and power.
+
+Updating when PCB arrives.
