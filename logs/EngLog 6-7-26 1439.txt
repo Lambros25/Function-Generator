@@ -6,3 +6,20 @@ Updated docs.
 Chose a 2 layer PCB with as much of a solid ground as possible for better signal integrity. PCB will have female pins in order to accept pico and power.
 
 Updating when PCB arrives.
+
+
+In order to solve past questions:
+
+V1 was updated and requires these:
+- Sine and Square output 0-1MHz 9V peak
+- Manually adjustable sinewave gain
+- PC controlled via Pico W thorugh simple UI
+- PCB for durability and cleanliness
+- Strong documentation and reproducibility
+- BNC Output
+- USB & battery powered
+
+Digipot was complicated to add and needed much testing. Decided to keep a basic variable resistor for now.
+
+"Square is buffered with a comparator (TC4427) and amplitude control comes from limiting the rails".
+Buffering does happen however amplitude control caused very visible rounding. Scrapped for now.
