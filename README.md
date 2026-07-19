@@ -16,3 +16,6 @@ This repository contains my ongoing engineering work to build a laboratory-orien
 - `scripts/` — helper scripts for committing/pushing logs
 - `Push all.bat\Push Engineering logs.bat` — Batch files to make git pushing quick and easy.
 - `images/` — Images of the project. Used for progress tracking. 
+
+# Versioning
+Integers = major milestones with a defined goal. Decimals = fixes, optimizations, small additions toward that goal.
