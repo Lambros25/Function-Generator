@@ -1,0 +1,27 @@
+Pcb that was ordered arrived... I have made a mistake in BOM where I replaced the 2.21k resistors with 2.21Ω resistors. Failiure.
+
+Replaced the 4 LPFs with a butterscotch filter. Re-ordered.
+
+Buttershotch should be better, allow for almost all the amplitude.
+
+Butterscotch specs:
+
+- 5th-order LC Butterworth, doubly terminated, low-pass
+- System impedance: 60 Ω (2× 120 Ω in parallel on both source and load side — same reel as everything else)
+- Cutoff: ~1.5 MHz
+- Topology: shunt C – series L – shunt C – series L – shunt C
+- Values: 1 nF / 10 µH / 3.3 nF / 10 µH / 1 nF
+- Caps: C0G, ±1% (worth the extended fee, X7R would distort in the signal path)
+- Inductors: 0603, ±10%, SRF 17 MHz, DCR 1.85 Ω (only basic part available — tolerance is the weak link, corner  may shift a few %)
+- Rolloff: −100 dB/decade past cutoff vs ~−80 dB/decade from the old 4× cascaded RC — and no passband droop stacking
+
+Why better than the 4 LPFs:
+Cascaded RCs each eat amplitude well before their own corner — by 1 MHz the old chain was visibly sagging. The Butterworth is maximally flat: simulated ~−0.1 dB at 1 MHz (expect ≤0.3 dB on real parts), then a hard knee. Passive LC also adds no noise and no op-amp bandwidth limits of its own. Cost: fixed −6 dB from the double termination, recovered in the gain stage.
+Other changes this order:
+
+All SMD now, fully JLCPCB assembled (2 boards + 3 bare spares)
+Filter caps swapped to C0G, decouplers to basic part (C28233), killed some extended fees
+Pot + BNC sourced separately, hand-soldered (skipped THT assembly fees)
+Lesson from the 2.21 Ω incident: read the matched part description on every line before paying. Value AND unit. Every time.
+
+Will update when PCB arrives.
