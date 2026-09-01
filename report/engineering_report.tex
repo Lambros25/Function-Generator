@@ -227,8 +227,9 @@ them. It is not a spec sheet either; that is the top of \repofile{README.md}.
         Square edges     & $\sim$20\,ns rise and fall, 10--90\%                          \\
         Output impedance & 53\,\ohm\ sine / 58\,\ohm\ square, measured at 1\,kHz         \\
         Resolution       & 8-bit R-2R ladder, $\sim$7 effective bits                     \\
-        Supply           & USB, or 2$\times$9\,V batteries                               \\
-        Control          & USB CDC serial and desktop UI (\repofile{scripts/awg\_ui.py}) \\
+        Supply           & USB and 2$\times$9\,V batteries                              \\
+        Control          & USB CDC serial and desktop UI
+        (\href{https://github.com/Lambros25/Function-Generator/blob/main/scripts/awg_ui.py}{\texttt{scripts/awg\_ui.py}}) \\
         MCU              & Raspberry Pi Pico W (RP2040), overclocked to 225\,MHz         \\
         \bottomrule
     \end{tabularx}
@@ -758,14 +759,18 @@ Drawn from \docu{version_requirements.md}{version\_requirements.md} and
 \clearpage
 \section*{Appendix B: current schematic (v1.2)}
 \addcontentsline{toc}{section}{Appendix B: current schematic (v1.2)}
-Dated 26 August 2026, reproduced at full page width overleaf. The embed is vector and
-clickable --- scroll or pinch-zoom reads every net and value losslessly, and clicking
-the schematic opens \texttt{figures/schematic\_overview.pdf} directly at native size.
+Dated 26 August 2026, reproduced at full page width overleaf. The embed is vector ---
+scroll or pinch-zoom reads every net and value losslessly --- and the schematic is
+also a link: click it to open
+\href{https://github.com/Lambros25/Function-Generator/blob/main/hardware/schematic_overview.pdf}{\texttt{hardware/schematic\_overview.pdf}}
+on GitHub, a
+real URL that works from anywhere this PDF is opened, phone included, unlike a
+relative path into a folder that may not travel with the file.
 
 \begin{landscape}
     \begin{figure}[H]
         \centering
-        \href{figures/schematic_overview.pdf}{%
+        \href{https://github.com/Lambros25/Function-Generator/blob/main/hardware/schematic_overview.pdf}{%
             \includegraphics[width=0.85\linewidth]{figures/schematic_overview.pdf}}
     \end{figure}
 \end{landscape}

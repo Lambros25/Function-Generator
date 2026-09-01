@@ -25,7 +25,7 @@ reach full bring-up and characterisation.
 | Output | BNC, 50Ω series; measured source impedance 53Ω (sine) / 58Ω (square) at 1kHz, Hi-Z loads only |
 | DC offset | none observed |
 | Resolution | 8-bit R-2R ladder, ~7 effective bits (1% resistor matching) |
-| Supply | USB and 9V batteries (measured rails 9.52 / −9.54V) |
+| Supply | USB and 2× 9V batteries (measured rails 9.52 / −9.54V) |
 | Control | USB CDC serial (plain-text commands) + desktop UI (`scripts/awg_ui.py`) |
 | MCU | Raspberry Pi Pico W (RP2040), 225MHz overclocked |
 
