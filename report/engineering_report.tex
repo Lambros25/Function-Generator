@@ -157,27 +157,31 @@
 \addcontentsline{toc}{section}{Summary}
 \label{sec:summary}
 
-\begin{callout}[title={The short version}]
-    Eight months, three PCB revisions, two of them dead on arrival --- and not one of the
-    failures was a design error.
+\begin{callout}[title={Why? How?}]
+    \subsection{Why?}
+    This project was aimed to be above all else, a learning experience with a byproduct of a working function generator. It was an excuse
+    work with digital analog synthesis, signals, filters, opamps and even switches. A gateway to mixing analog and digital, build intuition
+    and experience. Along with that, having a set goal, a tool for proof helped with rough prototyping days, as well as motivation.
 
-    A BOM matcher silently dropped a unit prefix and populated 2.21\,\ohm\ where the
-    design called for 2.21\,k\ohm, across every rung of the R-2R ladder. A copy-paste
-    during an EDA migration merged the two inputs of an op-amp onto a single net, and ERC
-    passed. A filter inductor was chosen on inductance, package, tolerance and
-    self-resonance, and its current rating was never read.
+    \subsection{How?}
+    The idea begun with an arbitrary wave generator. It's in theory, a generator that can output any wave, ideally at any frequency with unlimited power.
+    With as a template, after online research the goal of 1MHz was established, using a raspberry pi pico W. The pi pico outputs using an R-2R ladder "steps",
+    that is samples of the requested signal, and using the proper filters and reconstruction methods, the full signal is recovered. Ideally the project would
+    follow a R-2R -> Reconstruction -> Buffer -> output diagram, which it mostly did with the exception of a variable gain stage, as the pico is limited
+    to +3.3Vp-p. Moreover, due to the lack of a proper power supply, it was designed around $2\,x\,9V$ rechargable batteries.
 
-    Every one of those passed every check available that was not a physical measurement.
-    That is the finding this report exists to record; the working instrument at the end of
-    it is almost a by-product.
+    \subsection{The Arbitrary Wave Generator (AWG)}
+    The instrument itself is a laboratory-oriented DDS/AWG signal generator built around an
+    R-2R ladder, a 5th-order doubly-terminated LC Butterworth reconstruction filter, and a
+    Raspberry Pi Pico W. It uses lm318 at 3 stages, during reconstruction, amplification and buffering, as
+    well as an TC4427 for squarewave buffering and an ADG1419 for output selection.
+    It produces sine, square, noise, AM and FM under USB control, it is
+    characterised from ~DC to 1\,MHz on the sine path and to at least 2\,MHz on the square
+    path, and has a known, documented, firmware-mitigated fault in its filter that is
+    described here rather than smoothed over.
+
 \end{callout}
 
-The instrument itself is a laboratory-oriented DDS/AWG signal generator built around an
-R-2R ladder, a 5th-order doubly-terminated LC Butterworth reconstruction filter, and a
-Raspberry Pi Pico W. It produces sine, square, noise, AM and FM under USB control, is
-characterised from DC to 1\,MHz on the sine path and to at least 2\,MHz on the square
-path, and has a known, documented, firmware-mitigated fault in its filter that is
-described here rather than smoothed over.
 
 % ================================================================ about
 \section{About this report}
@@ -218,19 +222,19 @@ them. It is not a spec sheet either; that is the top of \repofile{README.md}.
     \begin{tabularx}{0.95\linewidth}{@{}>{\bfseries\color{accent}}l X@{}}
         \toprule
         \rowcolor{accentpale}
-        \multicolumn{2}{@{}l}{\textbf{\color{accent}Instrument summary --- v1.2}}        \\
+        \multicolumn{2}{@{}l}{\textbf{\color{accent}Instrument summary --- v1.2}}                                         \\
         \midrule
-        Waveforms        & Sine, square, sine+noise, AM, FM                              \\
-        Sine range       & 0\,Hz--1\,MHz, characterised; DDS with phase accumulator      \\
-        Square range     & To at least 2\,MHz                                            \\
-        Sine amplitude   & $\sim$16\,V\textsubscript{pp} max at 1\,kHz, analog pot       \\
-        Square edges     & $\sim$20\,ns rise and fall, 10--90\%                          \\
-        Output impedance & 53\,\ohm\ sine / 58\,\ohm\ square, measured at 1\,kHz         \\
-        Resolution       & 8-bit R-2R ladder, $\sim$7 effective bits                     \\
-        Supply           & USB and 2$\times$9\,V batteries                              \\
+        Waveforms        & Sine, square, sine+noise, AM, FM                                                               \\
+        Sine range       & 0\,Hz--1\,MHz, characterised; DDS with phase accumulator                                       \\
+        Square range     & To at least 2\,MHz                                                                             \\
+        Sine amplitude   & $\sim$16\,V\textsubscript{pp} max at 1\,kHz, analog pot                                        \\
+        Square edges     & $\sim$20\,ns rise and fall, 10--90\%                                                           \\
+        Output impedance & 53\,\ohm\ sine / 58\,\ohm\ square, measured at 1\,kHz                                          \\
+        Resolution       & 8-bit R-2R ladder, $\sim$7 effective bits                                                      \\
+        Supply           & USB and 2$\times$9\,V batteries                                                                \\
         Control          & USB CDC serial and desktop UI
         (\href{https://github.com/Lambros25/Function-Generator/blob/main/scripts/awg_ui.py}{\texttt{scripts/awg\_ui.py}}) \\
-        MCU              & Raspberry Pi Pico W (RP2040), overclocked to 225\,MHz         \\
+        MCU              & Raspberry Pi Pico W (RP2040), overclocked to 225\,MHz                                          \\
         \bottomrule
     \end{tabularx}
 \end{table}
@@ -542,7 +546,7 @@ asymmetry is logged in the same entry. \srcfile{EngLog 01-09-2026 1436.txt}
               a physical measurement.} A BOM matcher dropping a unit prefix (Lesson~1), a
           copy-paste merging two nets across an EDA migration (Lesson~2), and a datasheet column
           never read (Lesson~3). None was caught by ERC, DRC, simulation or visual schematic
-          review. A fourth, closely related incident --- name and part-number drift in the
+          review. A fourth, closely related near miss --- name and part-number drift in the
           component library, folded into Lesson~1 alongside the BOM matcher --- was caught early
           enough to cost nothing, which is the only reason it reads as a near miss rather than a
           fourth incident.
