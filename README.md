@@ -1,10 +1,4 @@
-## ------------------- THIS IS IN THE PROTOTYPING STAGE -------------------
-    This project is intentionally kept at the prototype stage to allow rapid
-    iteration and experimentation with signal quality, filtering strategies,
-    and grounding techniques. Mistakes are to be expected.
--------------------------------------------------------------------------
-
-# AWG / DDS Function Generator (Prototype)
+# AWG / DDS Function Generator
 
 Laboratory-oriented DDS/AWG signal generator. Current build: v1.2, first revision to
 reach full bring-up and characterisation.
