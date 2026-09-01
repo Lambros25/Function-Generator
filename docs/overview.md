@@ -14,21 +14,20 @@ This is why the device is built rather than bought.
 This folder contains the structured technical documentation of the project.
 Each file has a specific role.
 
-- `v1.1 architecture.md`  
-  Overview of the architecture of the system. Goals currently being worked on as well as the next steps.
+- `v1_2_architecture.md`  
+  Overview of the architecture of the system. Goals currently being worked on as well
+  as the next steps, and open questions the measurements have not closed.
 
-- `calibration.md` (Currently not in use.)
-  Describes calibration procedures, correction methods, and achieved accuracy.
-
-- `capabilities.md`  
-  Overview of current capabilities, and measurements.
-
-- `design-philosophy.md`
+- `design-philosophy.md`  
   Window into the philosophy and the reason for the construction of this project.
 
 - `fabrication.md`  
   PCB fabrication and assembly knowledge: JLCPCB process decisions, DRC
   calibration, BOM/fee strategy, ordering workflow.
+
+- `firmware.md`  
+  Pico W firmware: signal generation, host interface, features — read off `AWG.c`
+  directly, including the pin map, command reference, and known gaps.
 
 - `future-work.md`  
   Outlines medium- and long-term ideas that are intentionally deferred.
@@ -43,15 +42,22 @@ Each file has a specific role.
   Lists known hardware and software limitations, their causes, and potential
   mitigation strategies.
 
-- `overview.md`
+- `measurements.md`  
+  Measured performance of the current build, and what remains uncharacterised.
+
+- `overview.md`  
   The current file, meant to give a coherent overview of the documentation.
 
 - `Reconstruction.md`  
-  Details on the reconstruction process.
+  Details on the reconstruction process, stage by stage.
 
-- `version requirements.md`  
-  Defines current and past project goals, performance targets, and scope.
+- `version_requirements.md`  
+  Version history, current and past project goals, performance targets and scope.
   Requirements are updated as milestones are achieved.
 
-- `sinewave dac.md`  
-  Documents the DAC choice.
+---
+
+## Where to start
+Read `design-philosophy.md`, then the version history at the top of
+`version_requirements.md`, then `v1_2_architecture.md`. `lessons.md` is the honest
+part.

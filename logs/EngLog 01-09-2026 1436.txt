@@ -1,0 +1,7 @@
+So, documentation has been updated.
+
+Now, found an error, the inductors being rated max 3mA ended up saturating the core and as such dropping the curve and amplitude at ~1Mhz. 
+
+Digitally fixed squarewave duty cycle.
+
+Time to make the engineering report, "how did we get here".

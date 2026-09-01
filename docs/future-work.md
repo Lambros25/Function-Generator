@@ -9,27 +9,12 @@ intentionally postponed to preserve focus and momentum. May or may not be develo
 - Firmware R-2R lookup-table scaling (deferred from v1.0/v1.1, which ship with an analog pot).
 - Potentially combined with coarse analog gain switching.
 
-### DC Power supply integration
-- 5 rail (used for big breadboards) design.
-- Banana or 9V input.
-- LCD showing Current / Watthours.
-- Digitally controlled with Pico.
-- Adjustable for every rail (3.3V, 5V, 9V, 12V, 18V, Function Generator) positive and negative.
-- Short circuit protection, audible beep.
-- Stable current and voltage.
-- Ground hookup for easy probing.
-- BNC out, BNC in for external signals, and long jumper wire(s) for signal input on the breadboard.
-
-### Chaining capability
-- Connectors that allow for chaining. Using 2 generators, in order to power all 10 of the rails, and having a connector that allows another board as an "extension". Should look like 10 rails on the firmware.
 
 ## Lower Priority
 
 ### Discrete parts
 Building the generator using only discrete components.
 
-### Modulated signals
-- Ability to produce modulated signals up to MHz
 
 ### High-frequency extensions
 - Extend clean sine generation beyond the initial MHz range

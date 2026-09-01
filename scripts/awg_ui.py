@@ -3,7 +3,8 @@
 
 A dark, minimalist Tkinter UI (portfolio aesthetic) that talks to the Pico
 firmware over USB CDC serial using the same plain-text protocol:
-    f<Hz>, c<cal>, sine/square/noise/am/fm, snr<dB>, m<Hz>, d<amount>, i
+    f<Hz>, c<cal>, sine/square/noise/am/fm, snr<dB>, m<Hz>, d<amount>,
+    duty<pct>, corr<0/1>, amp<0/1>, i
 
 Requires pyserial:  pip install pyserial
 """
@@ -399,6 +400,7 @@ class AwgApp:
         self.mode = "sine"
         self.freq = 1000.0
         self.cal = 1.0
+        self.low_amp = False
         self.snr = 20.0
         self.mod_freq = 1000.0
         self.mod_amount = 50.0
@@ -432,6 +434,9 @@ class AwgApp:
         # Header
         header = tk.Frame(self.root, bg=BG)
         header.pack(fill="x", padx=28, pady=(24, 4))
+        self.amp_btn = PillButton(header, "<3mA", self._toggle_low_amp,
+                                  width=60, height=28, selectable=True)
+        self.amp_btn.pack(side="left", padx=(0, 14), pady=(10, 0))
         tk.Label(header, text="AWG", bg=BG, fg=TEXT, font=FONT_TITLE).pack(side="left")
         tk.Label(header, text="Function Generator", bg=BG, fg=MUTED,
                  font=("Segoe UI", 11)).pack(side="left", padx=(12, 0), pady=(9, 0))
@@ -577,6 +582,7 @@ class AwgApp:
         self._notice("")
         self._log(f"Connected to {port}")
         self._send("i")
+        self._send("amp1" if self.low_amp else "amp0")
 
     def _disconnect(self):
         self.stop_event.set()
@@ -635,6 +641,15 @@ class AwgApp:
         self.notice_lbl.config(text=text)
 
     # -------------------------------------------------------------- Actions
+    def _toggle_low_amp(self):
+        # Low-current mode (<3mA through the R-2R ladder's inductors): scales
+        # SINE/NOISE/AM/FM to 1/4 amplitude. No effect on SQUARE, which
+        # bypasses the DAC entirely.
+        self.low_amp = not self.low_amp
+        self.amp_btn.set_selected(self.low_amp)
+        self._send("amp1" if self.low_amp else "amp0")
+        self._log(f"Amplitude: {'LOW (<3mA)' if self.low_amp else 'NORMAL'}")
+
     def _set_mode(self, mode, send=True):
         self.mode = mode
         for val, b in self.mode_btns.items():

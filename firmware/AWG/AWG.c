@@ -20,6 +20,17 @@ volatile float calibration_factor = 1.0f;
 #define ADG_SQUARE_LEVEL 1
 #define OVERCLOCK_MHZ 225
 
+// Full-scale sine amplitude keeps the R-2R ladder's inductor current under the
+// 3mA design limit (docs/measurements.md). LOW mode further scales every sine
+// table (SINE/NOISE/AM/FM all share these tables) to 1/4 amplitude - a
+// user-toggleable, low-current mode ("<3mA" in the host UI), not just a fixed
+// headroom margin. Runtime, not compile-time, so the UI can flip it live.
+#define SINE_AMPLITUDE_SCALE_NORMAL 1.0f
+#define SINE_AMPLITUDE_SCALE_LOW 0.25f
+volatile float sine_amplitude_scale = SINE_AMPLITUDE_SCALE_NORMAL;
+volatile bool low_amplitude_mode = false;
+volatile bool amplitude_mode_changed = false;
+
 // Ladder bit depth N is derived from the number of GPIO pins in the sine output
 // path: DAC_PINS_BASE..DAC_PINS_BASE+7 = 8 pins drive the R-2R ladder. Full scale
 // is 0..2^N-1, midscale is 2^(N-1).
@@ -85,56 +96,60 @@ const struct pio_program dac_program = {
     .origin = -1,
 };
 
-// ===== PIO PROGRAMS FOR SQUARE WAVE =====
-// Two methods keep the square's edges clean and jitter-free across the whole
-// frequency range:
-//  - toggle:  2-instruction set-pins toggle driven by the 16.8-bit fractional
-//             clock divider (used where the divider fits, giving exact edges).
-//  - counter: 32-bit half-period countdown fed from the TX FIFO (used at low
-//             frequencies where the divider would overflow).
-#define SQUARE_TOGGLE_MIN_HZ 1720
-
+// ===== PIO PROGRAM FOR SQUARE WAVE (asymmetric, autonomous) =====
+// One program covers the whole frequency range and supports independent
+// HIGH/LOW timing (needed for the duty-cycle correction below). The two
+// half-period counts are pulled ONCE, at configure time, into the persistent
+// ISR (high count) and Y (low count) registers; the wrap loop below then reads
+// from those on every cycle with zero further FIFO/CPU involvement. That is
+// the key property this program needs: the old CPU-fed counter method (one
+// pio_sm_put_blocking per half-period) had core1's loop/scheduling jitter
+// riding on every edge, which is fine at low frequency but would swamp the
+// ~27ns correction this program exists to make. Running the SM undivided
+// (clkdiv = 1.0) also gives single-sys-clock-cycle timing resolution.
+//
+// .wrap_target is the loop body; the two "pull"/"mov ..., osr" pairs above it
+// are a one-time prologue that only runs once per pio_sm_init (program start).
+//
+//     pull   block         ; prologue: consumes the HIGH count word
+//     mov    isr, osr       ;   stash it in ISR (persistent for the SM's life)
+//     pull   block         ; prologue: consumes the LOW count word
+//     mov    y, osr        ;   stash it in Y (persistent for the SM's life)
 // .wrap_target
-//     set pins, 1
-//     set pins, 0
-// .wrap
-const uint16_t square_toggle_instructions[] = {
-    0xe001, // set pins, 1
-    0xe000, // set pins, 0
-};
-
-const struct pio_program square_toggle_program = {
-    .instructions = square_toggle_instructions,
-    .length = 2,
-    .origin = -1,
-};
-
-// .wrap_target
-//     pull block
-//     mov x, osr
-//     set pins, 1
+//     mov    x, isr        ; reload working counter = HIGH count
+//     set    pins, 1
 // high:
-//     jmp x-- high
-//     pull block
-//     mov x, osr
-//     set pins, 0
+//     jmp    x--, high
+//     mov    x, y          ; reload working counter = LOW count
+//     set    pins, 0
 // low:
-//     jmp x-- low
+//     jmp    x--, low
 // .wrap
-const uint16_t square_counter_instructions[] = {
+//
+// HIGH duration = (high_count + 3) SM cycles, LOW duration = (low_count + 3)
+// SM cycles (the "+3" is the fixed set/jmp/mov overhead each phase pays - see
+// compute_square_counts()). Local instruction addresses (0-indexed within
+// this program): 0=pull,1=mov isr,osr,2=pull,3=mov y,osr,4=mov x,isr (wrap
+// target),5=set 1,6=jmp x--,7=mov x,y,8=set 0,9=jmp x-- (wrap).
+#define SQUARE_ASYM_WRAP_TARGET 4
+#define SQUARE_ASYM_WRAP 9
+
+const uint16_t square_asym_instructions[] = {
     0x80a0, // pull   block
-    0xa027, // mov    x, osr
+    0xa0c7, // mov    isr, osr
+    0x80a0, // pull   block
+    0xa047, // mov    y, osr
+    0xa026, // mov    x, isr      (wrap_target)
     0xe001, // set    pins, 1
-    0x0043, // jmp    x--, 3
-    0x80a0, // pull   block
-    0xa027, // mov    x, osr
+    0x0046, // jmp    x--, 6      (high:)
+    0xa022, // mov    x, y
     0xe000, // set    pins, 0
-    0x0047, // jmp    x--, 7
+    0x0049, // jmp    x--, 9      (low:) (wrap)
 };
 
-const struct pio_program square_counter_program = {
-    .instructions = square_counter_instructions,
-    .length = 8,
+const struct pio_program square_asym_program = {
+    .instructions = square_asym_instructions,
+    .length = 10,
     .origin = -1,
 };
 
@@ -153,7 +168,7 @@ void generate_sine_table()
     for (int i = 0; i < SINE_TABLE_SIZE; i++)
     {
         float angle = (2.0f * M_PI * i) / SINE_TABLE_SIZE;
-        uint8_t value = (uint8_t)(127.5f + 127.5f * sinf(angle));
+        uint8_t value = (uint8_t)(127.5f + 127.5f * sine_amplitude_scale * sinf(angle));
         sine_table[i] = reverse_bits(value);
     }
 }
@@ -164,7 +179,7 @@ void generate_raw_sine_table()
     {
         float angle = (2.0f * M_PI * i) / SINE_TABLE_SIZE;
         // Signed full-scale sine (approx sin*128) for AM/FM modulation math.
-        raw_sine_table[i] = (int8_t)(127.0f * sinf(angle));
+        raw_sine_table[i] = (int8_t)(127.0f * sine_amplitude_scale * sinf(angle));
     }
 }
 
@@ -228,7 +243,7 @@ void recompute_noise_params()
     for (int i = 0; i < SINE_TABLE_SIZE; i++)
     {
         float angle = (2.0f * M_PI * i) / SINE_TABLE_SIZE;
-        float v = a * sinf(angle);
+        float v = a * sine_amplitude_scale * sinf(angle);
         noise_sine_table[i] = (int8_t)(v >= 0.0f ? (v + 0.5f) : (v - 0.5f));
     }
 }
@@ -264,26 +279,163 @@ void recompute_modulation()
     fm_dev_q = (int32_t)((dev * 4294967296.0 / SAMPLE_RATE_HZ) / 128.0);
 }
 
-// ===== CORE 1: WAVEFORM GENERATION =====
-// (Re)configure the square-wave SM for either the toggle or counter method.
-static void configure_square_sm(PIO pio, uint sm, uint off_toggle, uint off_counter,
-                                bool use_counter, uint32_t freq)
+// ===== SQUARE-WAVE DUTY-CYCLE CORRECTION =====
+// Base term: the TC4427 gate driver ahead of the ADG1419 has asymmetric
+// propagation delay (t_D1 ~= 20ns typical turn-on, t_D2 ~= 40ns typical
+// turn-off), which stretches every cycle's HIGH time by a fixed ~27ns as
+// measured at the BNC. This alone fully explains (and corrects) the error up
+// to ~100kHz.
+#define SQUARE_DUTY_CORRECTION_NS 27.0f
+
+// Above ~100kHz, a flat 27ns correction alone leaves a growing residual (a
+// second, smaller fixed-time asymmetry - likely the ADG1419 itself and/or PCB
+// parasitics - that the single-TC4427-constant model doesn't capture): a
+// second BNC measurement pass with the base correction applied still showed
+// 49.90%..52.60% from 300kHz to 2MHz instead of a flat 50%. Rather than
+// modeling that second source, square_duty_cal_curve[] is a manually-measured
+// total-correction-vs-frequency curve, fitted at the same points as
+// docs/measurements.md's duty-cycle table, that replaces the flat constant
+// above 100kHz. Below the lowest and above the highest point it holds flat;
+// between points it's interpolated linearly in log10(frequency), since the
+// points span decades. Re-measure and update this table if the analog
+// front-end (driver, switch, PCB layout) changes.
+typedef struct
 {
+    float freq_hz;
+    float correction_ns; // total HIGH-time correction at this frequency (replaces SQUARE_DUTY_CORRECTION_NS, not added to it)
+} duty_cal_point_t;
+
+#define SQUARE_DUTY_CAL_POINTS 8
+static const duty_cal_point_t square_duty_cal_curve[SQUARE_DUTY_CAL_POINTS] = {
+    {    1000.0f, SQUARE_DUTY_CORRECTION_NS }, // 50.00% measured with the flat correction - on curve
+    {   10000.0f, SQUARE_DUTY_CORRECTION_NS }, // 50.00%
+    {  100000.0f, SQUARE_DUTY_CORRECTION_NS }, // 50.00%
+    {  300000.0f,               23.7f       }, // 49.90% measured -> correction trimmed down ~3ns
+    {  500000.0f,               39.0f       }, // 50.60% measured -> +12ns over the flat value
+    {  700000.0f,               37.0f       }, // 50.70% measured -> +10ns
+    { 1000000.0f,               37.0f       }, // 51.00% measured -> +10ns
+    { 2000000.0f,               40.0f       }, // 52.60% measured -> +13ns
+};
+
+// Interpolate square_duty_cal_curve at freq_hz (log-frequency, flat outside
+// the table's span). This is what compute_square_counts() actually uses; the
+// bare SQUARE_DUTY_CORRECTION_NS constant above is just the curve's origin
+// and its value at the low end where the flat model held exactly.
+static float square_duty_correction_ns_for(uint32_t freq_hz)
+{
+    float f = (float)freq_hz;
+    if (f <= square_duty_cal_curve[0].freq_hz)
+    {
+        return square_duty_cal_curve[0].correction_ns;
+    }
+    if (f >= square_duty_cal_curve[SQUARE_DUTY_CAL_POINTS - 1].freq_hz)
+    {
+        return square_duty_cal_curve[SQUARE_DUTY_CAL_POINTS - 1].correction_ns;
+    }
+    for (int i = 0; i < SQUARE_DUTY_CAL_POINTS - 1; i++)
+    {
+        float f0 = square_duty_cal_curve[i].freq_hz;
+        float f1 = square_duty_cal_curve[i + 1].freq_hz;
+        if (f <= f1)
+        {
+            float t = (log10f(f) - log10f(f0)) / (log10f(f1) - log10f(f0));
+            float c0 = square_duty_cal_curve[i].correction_ns;
+            float c1 = square_duty_cal_curve[i + 1].correction_ns;
+            return c0 + t * (c1 - c0);
+        }
+    }
+    return square_duty_cal_curve[SQUARE_DUTY_CAL_POINTS - 1].correction_ns; // unreachable
+}
+
+// Requested duty is not yet an exposed user command, but every computation
+// below is written in terms of an arbitrary duty_percent, so adding one later
+// (a "duty<pct>" command, say) is just wiring a variable through - no rework
+// of the correction math or the PIO program.
+volatile float square_duty_percent = 50.0f;
+volatile bool duty_correction_enabled = true; // runtime on/off switch (req. 7)
+volatile bool duty_changed = false;
+// Last achieved duty, post-clamp, reported back to the host alongside the
+// requested value (see main()'s "square"/"duty"/"i" responses).
+volatile float square_achieved_duty_percent = 50.0f;
+
+// Fixed per-phase overhead of square_asym_program, in SM cycles: the "set"
+// instruction plus the "jmp x--" loop's minimum one pass (count=0 still
+// executes once) plus the following phase's "mov" reload, which still shows
+// the current pin state. See the program's comment block for the full trace.
+#define SQUARE_MIN_PHASE_CYCLES 3u
+
+// Compute the (high_count, low_count) to load into square_asym_program for a
+// given frequency/duty, with the TC4427 correction applied, and report what
+// duty is actually achieved after integer-cycle rounding and edge clamping.
+static void compute_square_counts(uint32_t freq_hz, float duty_percent, bool correction_enabled,
+                                  uint32_t *out_high_count, uint32_t *out_low_count,
+                                  volatile float *out_achieved_duty_percent)
+{
+    uint32_t sys_hz = clock_get_hz(clk_sys); // actual (possibly overclocked) sys clock, not a hardcoded 125MHz
+    uint64_t period_cycles = ((uint64_t)sys_hz + freq_hz / 2) / freq_hz; // round to nearest
+    if (period_cycles < 2 * SQUARE_MIN_PHASE_CYCLES)
+    {
+        period_cycles = 2 * SQUARE_MIN_PHASE_CYCLES; // clamp: fastest this program can produce
+    }
+
+    float duty = duty_percent / 100.0f;
+    if (duty < 0.0f) duty = 0.0f;
+    if (duty > 1.0f) duty = 1.0f;
+
+    // Total loop-count budget once both phases' fixed overhead is paid.
+    int64_t count_budget = (int64_t)period_cycles - 2 * (int64_t)SQUARE_MIN_PHASE_CYCLES;
+    int64_t ideal_high_count = lroundf((float)count_budget * duty);
+
+    int64_t correction_cycles = 0;
+    if (correction_enabled)
+    {
+        // ns -> cycles at the ACTUAL sys clock, rounded to nearest. Residual:
+        // up to +/-0.5 cycle is dropped by the rounding (~2.2ns at 225MHz,
+        // ~4ns at 125MHz) - see the calibration note for the measured effect.
+        float correction_ns = square_duty_correction_ns_for(freq_hz);
+        correction_cycles = lroundf(correction_ns * (float)sys_hz / 1.0e9f);
+    }
+
+    // Subtract the correction from HIGH (add it to LOW) but never let either
+    // side go negative or exceed the budget - if the correction doesn't fit
+    // (very short periods at very high frequency), apply as much as fits
+    // rather than silently dropping it; count_budget is preserved exactly
+    // either way, so frequency is never distorted by this clamp.
+    int64_t high_count = ideal_high_count - correction_cycles;
+    if (high_count < 0) high_count = 0;
+    if (high_count > count_budget) high_count = count_budget;
+    int64_t low_count = count_budget - high_count;
+
+    *out_high_count = (uint32_t)high_count;
+    *out_low_count = (uint32_t)low_count;
+
+    uint32_t high_cycles = *out_high_count + SQUARE_MIN_PHASE_CYCLES;
+    uint32_t total_cycles = high_cycles + *out_low_count + SQUARE_MIN_PHASE_CYCLES;
+    *out_achieved_duty_percent = 100.0f * (float)high_cycles / (float)total_cycles;
+}
+
+// ===== CORE 1: WAVEFORM GENERATION =====
+// (Re)configure the square-wave SM with a fresh HIGH/LOW count pair. Always
+// leaves the SM disabled (matches pio_sm_init's own behavior) - callers that
+// need square actively running must re-enable it afterward.
+static void configure_square_sm(PIO pio, uint sm, uint offset,
+                                uint32_t high_count, uint32_t low_count)
+{
+    pio_sm_set_enabled(pio, sm, false);
+    pio_sm_clear_fifos(pio, sm);
+
     pio_sm_config c = pio_get_default_sm_config();
     sm_config_set_set_pins(&c, SQUARE_OUT_PIN, 1);
-    if (use_counter)
-    {
-        sm_config_set_wrap(&c, off_counter, off_counter + 7);
-        sm_config_set_clkdiv(&c, 1.0f); // run at full sys clock; count provides the rate
-        pio_sm_init(pio, sm, off_counter, &c);
-    }
-    else
-    {
-        sm_config_set_wrap(&c, off_toggle, off_toggle + 1);
-        float div = (float)clock_get_hz(clk_sys) / (2.0f * freq);
-        sm_config_set_clkdiv(&c, div);
-        pio_sm_init(pio, sm, off_toggle, &c);
-    }
+    sm_config_set_wrap(&c, offset + SQUARE_ASYM_WRAP_TARGET, offset + SQUARE_ASYM_WRAP);
+    sm_config_set_clkdiv(&c, 1.0f); // full sys clock: counts give single-cycle resolution
+    pio_sm_init(pio, sm, offset, &c);
+
+    // Prime the persistent HIGH/LOW counts. The program's one-time prologue
+    // consumes exactly these two words into ISR/Y and then never pulls again,
+    // so this must happen before pio_sm_set_enabled() and needs no further
+    // feeding for the lifetime of this configuration.
+    pio_sm_put_blocking(pio, sm, high_count);
+    pio_sm_put_blocking(pio, sm, low_count);
 }
 
 void core1_entry()
@@ -311,27 +463,21 @@ void core1_entry()
     pio_sm_init(pio_dac, sm_dac, offset_dac, &c_dac);
     pio_sm_set_enabled(pio_dac, sm_dac, true);
 
-    // Setup PIO0 SM1 for square wave (toggle method above SQUARE_TOGGLE_MIN_HZ,
-    // counter method below it)
+    // Setup PIO0 SM1 for square wave: one autonomous asymmetric-duty program
+    // (square_asym_program) drives the whole frequency range - see its
+    // header comment for why that matters to the duty-cycle correction.
     PIO pio_square = pio0;
     uint sm_square = 1;
 
-    uint offset_square_toggle = pio_add_program(pio_square, &square_toggle_program);
-    uint offset_square_counter = pio_add_program(pio_square, &square_counter_program);
+    uint offset_square = pio_add_program(pio_square, &square_asym_program);
 
     pio_gpio_init(pio_square, SQUARE_OUT_PIN);
     pio_sm_set_consecutive_pindirs(pio_square, sm_square, SQUARE_OUT_PIN, 1, true);
 
-    bool square_uses_counter = (frequency_hz < SQUARE_TOGGLE_MIN_HZ);
-    uint32_t square_count = 0;
-    if (square_uses_counter)
-    {
-        // Half-period count: period = 2*(count+3) PIO clocks (2 for set + 1 each
-        // for the pull/mov overhead around each edge).
-        square_count = (clock_get_hz(clk_sys) / (2 * frequency_hz)) - 3;
-    }
-    configure_square_sm(pio_square, sm_square, offset_square_toggle,
-                        offset_square_counter, square_uses_counter, frequency_hz);
+    uint32_t square_high_count, square_low_count;
+    compute_square_counts(frequency_hz, square_duty_percent, duty_correction_enabled,
+                          &square_high_count, &square_low_count, &square_achieved_duty_percent);
+    configure_square_sm(pio_square, sm_square, offset_square, square_high_count, square_low_count);
     // Don't enable square wave PIO yet - only when user selects it
 
     // ADG1419 select: route the sine path by default.
@@ -362,29 +508,16 @@ void core1_entry()
             // Update sine phase increment
             sine_phase_increment = ((uint64_t)local_frequency * 4294967296ULL) / (uint32_t)(SAMPLE_RATE_HZ * local_calibration);
 
-            // Update square wave (toggle divider or counter half-period count)
-            bool new_uses_counter = (local_frequency < SQUARE_TOGGLE_MIN_HZ);
-            if (new_uses_counter != square_uses_counter)
+            // Update square wave: recompute HIGH/LOW counts for the new
+            // frequency (duty and correction unchanged) and reload the SM.
+            // configure_square_sm() (via pio_sm_init) always leaves the SM
+            // disabled; re-enable it if a square wave is actively playing.
+            compute_square_counts(local_frequency, square_duty_percent, duty_correction_enabled,
+                                  &square_high_count, &square_low_count, &square_achieved_duty_percent);
+            configure_square_sm(pio_square, sm_square, offset_square, square_high_count, square_low_count);
+            if (local_waveform == WAVEFORM_SQUARE)
             {
-                square_uses_counter = new_uses_counter;
-                configure_square_sm(pio_square, sm_square, offset_square_toggle,
-                                    offset_square_counter, square_uses_counter, local_frequency);
-                // configure_square_sm() (via pio_sm_init) leaves the SM disabled;
-                // re-enable it so an active square wave keeps running, otherwise
-                // the counter feeder's put_blocking would block forever.
-                if (local_waveform == WAVEFORM_SQUARE)
-                {
-                    pio_sm_set_enabled(pio_square, sm_square, true);
-                }
-            }
-            if (square_uses_counter)
-            {
-                square_count = (clock_get_hz(clk_sys) / (2 * local_frequency)) - 3;
-            }
-            else
-            {
-                float new_div_square = (float)clock_get_hz(clk_sys) / (2.0f * local_frequency);
-                pio_sm_set_clkdiv(pio_square, sm_square, new_div_square);
+                pio_sm_set_enabled(pio_square, sm_square, true);
             }
 
             frequency_changed = false;
@@ -428,6 +561,32 @@ void core1_entry()
         {
             recompute_modulation();
             mod_changed = false;
+        }
+
+        if (duty_changed)
+        {
+            // Requested duty and/or the correction on/off switch changed;
+            // frequency is unchanged, so just recompute and reload counts.
+            compute_square_counts(local_frequency, square_duty_percent, duty_correction_enabled,
+                                  &square_high_count, &square_low_count, &square_achieved_duty_percent);
+            configure_square_sm(pio_square, sm_square, offset_square, square_high_count, square_low_count);
+            if (local_waveform == WAVEFORM_SQUARE)
+            {
+                pio_sm_set_enabled(pio_square, sm_square, true);
+            }
+            duty_changed = false;
+        }
+
+        if (amplitude_mode_changed)
+        {
+            // Regenerate every sine-derived table (SINE/NOISE/AM/FM share
+            // them) at the new amplitude scale. Safe without locking: core1
+            // is the sole writer AND reader of these tables.
+            sine_amplitude_scale = low_amplitude_mode ? SINE_AMPLITUDE_SCALE_LOW : SINE_AMPLITUDE_SCALE_NORMAL;
+            generate_sine_table();
+            generate_raw_sine_table();
+            recompute_noise_params();
+            amplitude_mode_changed = false;
         }
 
         if (local_waveform == WAVEFORM_SINE)
@@ -512,21 +671,9 @@ void core1_entry()
         }
         else
         {
-            // --- SQUARE MODE ---
-            if (square_uses_counter)
-            {
-                // Feed half-period counts to the counter program (2 per cycle).
-                // put_blocking paces core 1 to the PIO's consumption rate.
-                for (int i = 0; i < 4; i++)
-                {
-                    pio_sm_put_blocking(pio_square, sm_square, square_count);
-                }
-            }
-            else
-            {
-                // Toggle method: PIO runs autonomously from the clock divider.
-                sleep_ms(10);
-            }
+            // --- SQUARE MODE: square_asym_program runs autonomously once
+            // configured (see its header comment) - nothing to feed here.
+            sleep_ms(10);
         }
     }
 }
@@ -554,6 +701,9 @@ int main()
     printf("  fm        - Switch to frequency modulation (carrier = f)\n");
     printf("  m<number> - Set modulation frequency in Hz (AM/FM)\n");
     printf("  d<number> - Set modulation: AM depth %% (0-100), FM deviation Hz\n");
+    printf("  duty<pct> - Set square duty cycle %% (1-99, e.g. duty30)\n");
+    printf("  corr<0/1> - Enable/disable TC4427 duty-cycle correction (SQUARE only)\n");
+    printf("  amp<0/1>  - Low-current (<3mA) 1/4-amplitude mode, SINE/NOISE/AM/FM\n");
     printf("  i         - Show current info\n\n");
 
     generate_sine_table();
@@ -591,7 +741,9 @@ int main()
                     {
                         current_waveform = WAVEFORM_SQUARE;
                         waveform_changed = true;
-                        printf("Waveform: SQUARE (output on GPIO 9, PIO-generated)\n");
+                        printf("Waveform: SQUARE (output on GPIO 9, PIO-generated, duty target %.2f%%, achieved %.2f%%, correction %s)\n",
+                               square_duty_percent, square_achieved_duty_percent,
+                               duty_correction_enabled ? "ON" : "OFF");
                     }
                     else if (strcmp(input_buffer, "noise") == 0)
                     {
@@ -624,6 +776,16 @@ int main()
                         {
                             printf("Invalid frequency (range: 1-50000000 Hz)\n");
                         }
+                    }
+                    else if (strncmp(input_buffer, "corr", 4) == 0 && strlen(input_buffer) > 4)
+                    {
+                        // Checked ahead of the single-'c' calibration branch below,
+                        // since "corr0"/"corr1" would otherwise match it first.
+                        int new_corr = atoi(&input_buffer[4]);
+                        duty_correction_enabled = (new_corr != 0);
+                        duty_changed = true;
+                        printf("Duty-cycle correction (TC4427, SQUARE only): %s\n",
+                               duty_correction_enabled ? "ON" : "OFF");
                     }
                     else if (input_buffer[0] == 'c')
                     {
@@ -666,6 +828,30 @@ int main()
                         {
                             printf("Invalid modulation frequency (range: 1-1000000 Hz)\n");
                         }
+                    }
+                    else if (strncmp(input_buffer, "duty", 4) == 0 && strlen(input_buffer) > 4)
+                    {
+                        // Checked ahead of the single-'d' mod-amount branch below,
+                        // since "duty30" would otherwise match it first.
+                        float new_duty = atof(&input_buffer[4]);
+                        if (new_duty >= 1.0f && new_duty <= 99.0f)
+                        {
+                            square_duty_percent = new_duty;
+                            duty_changed = true;
+                            printf("Square duty target set to %.2f%% (SQUARE only)\n", new_duty);
+                        }
+                        else
+                        {
+                            printf("Invalid duty (range: 1.0-99.0 %%)\n");
+                        }
+                    }
+                    else if (strncmp(input_buffer, "amp", 3) == 0 && strlen(input_buffer) > 3)
+                    {
+                        int new_amp = atoi(&input_buffer[3]);
+                        low_amplitude_mode = (new_amp != 0);
+                        amplitude_mode_changed = true;
+                        printf("Amplitude mode (SINE/NOISE/AM/FM): %s\n",
+                               low_amplitude_mode ? "LOW (<3mA, 1/4 scale)" : "NORMAL");
                     }
                     else if (input_buffer[0] == 'd' && strlen(input_buffer) > 1)
                     {
@@ -714,6 +900,13 @@ int main()
                                (current_waveform == WAVEFORM_FM) ? " Hz deviation" : "");
                         printf("SNR: %.1f dB%s\n", snr_db, (current_waveform == WAVEFORM_NOISE) ? " (NOISE active)" : "");
                         printf("Calibration factor: %.4f %s\n", calibration_factor,
+                               (current_waveform == WAVEFORM_SQUARE) ? "(INACTIVE)" : "(ACTIVE)");
+                        printf("Square duty: target %.2f%%, achieved %.2f%%, correction %s %s\n",
+                               square_duty_percent, square_achieved_duty_percent,
+                               duty_correction_enabled ? "ON" : "OFF",
+                               (current_waveform == WAVEFORM_SQUARE) ? "(ACTIVE)" : "(INACTIVE)");
+                        printf("Amplitude mode: %s %s\n",
+                               low_amplitude_mode ? "LOW (<3mA, 1/4 scale)" : "NORMAL",
                                (current_waveform == WAVEFORM_SQUARE) ? "(INACTIVE)" : "(ACTIVE)");
                         printf("Table size: %d samples\n", SINE_TABLE_SIZE);
                     }
